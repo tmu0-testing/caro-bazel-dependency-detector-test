@@ -122,12 +122,18 @@ def submit(repo: str, token: str, req: GHSubRequest):
         raise RuntimeError(f"Dependency submission failed with status code {resp.status_code}")
 
 
+def get_sha():
+    if 'GITHUB_PR_SHA' in os.environ:
+        return os.environ['GITHUB_PR_SHA']
+    return os.environ['GITHUB_SHA']
+
+
 def main():
     logging.basicConfig(level=logging.DEBUG)
     manifest = parse_manifest('Cargo.Bazel.toml.lock')
     detector = GHSubDetector('cargo-bazel-detector','0.0.1','https://github.com/dfinity/ic')
     job = GHSubJob(f'{os.environ['GITHUB_RUN_ID']}',f'{os.environ['GITHUB_WORKFLOW']} / {os.environ['GITHUB_JOB']}')
-    request = GHSubRequest(0,job,os.environ['GITHUB_SHA'], os.environ['GITHUB_REF'],detector,[manifest])
+    request = GHSubRequest(0,job,get_sha(), os.environ['GITHUB_REF'],detector,[manifest])
     submit(os.environ['GITHUB_REPOSITORY'], os.environ['GITHUB_TOKEN'], request)
 
 
