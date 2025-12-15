@@ -130,7 +130,6 @@ def get_sha():
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
-    logging.debug('hello world!')
     manifest = parse_manifest('Cargo.Bazel.toml.lock')
     detector = GHSubDetector('cargo-bazel-detector','0.0.1','https://github.com/dfinity/ic')
     job = GHSubJob(f'{os.environ['GITHUB_RUN_ID']}',f'{os.environ['GITHUB_WORKFLOW']} / {os.environ['GITHUB_JOB']}')
