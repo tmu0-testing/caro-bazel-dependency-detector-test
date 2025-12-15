@@ -23,7 +23,7 @@ jobs:
         env:
           SHELL_WRAPPER: "/usr/bin/time"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          GITHUB_PR_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           $SHELL_WRAPPER python main.py
       - name: Dependency Review
