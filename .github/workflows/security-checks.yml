@@ -7,27 +7,41 @@ permissions:
   contents: write
 
 jobs:
-  dependency-check:
+  dependency-review:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout base
+        uses: actions/checkout@v6
         with:
-          ref: "${{ github.event.pull_request.merge_commit_sha }}"
-      - name: Set up Python 3.14
+          path: "base"
+      - name: Checkout PR
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: "pr"
+          sparse-checkout: |
+            Cargo.Bazel.toml.lock
+          sparse-checkout-cone-mode: false
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
+          python-version: "3.12"
       - name: Install dependencies
+        working-directory: "./base"
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Run Bazel Dependency Submission
+        working-directory: "./base"
         env:
           SHELL_WRAPPER: "/usr/bin/time"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_PR_DIR: $GITHUB_WORKSPACE/pr
           GITHUB_PR_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          $SHELL_WRAPPER python main.py
+          set -euo pipefail
+          export PYTHONPATH=$PWD/ci/src:$PWD/ci/src/dependencies
+          $SHELL_WRAPPER python3 ci/src/dependencies/job/bazel_rust_gh_submission_job.py
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
         with:
